@@ -1,5 +1,5 @@
 import numpy as np
-from collections import Counter
+import time
 
 import sys
 from pathlib import Path
@@ -15,21 +15,21 @@ class wordle_bot(gb.guess_bot):
     def get_bucket(self, ans, guess) -> int:
         '''returns the number of the bucket returned when the answer is ans and guess is guessed'''
         word_length = len(ans)
-        bucket = [0] * word_length
+        bucket = np.zeros(word_length, dtype=int)
 
-        unmatched_counts = {}
+        unmatched_hist = {}
 
         for i in range(word_length):
             if guess[i] == ans[i]:
                 bucket[i] = 2
             else:
-                unmatched_counts[ans[i]] = unmatched_counts.get(ans[i], 0) + 1
+                unmatched_hist[ans[i]] = unmatched_hist.get(ans[i], 0) + 1
 
         for i in range(word_length):
             if bucket[i] != 2:
-                if unmatched_counts.get(guess[i], 0) > 0:
+                if unmatched_hist.get(guess[i], 0) > 0:
                     bucket[i] = 1
-                    unmatched_counts[guess[i]] -= 1
+                    unmatched_hist[guess[i]] -= 1
 
         bucket_int = 0
         for b in bucket:
@@ -43,9 +43,3 @@ class wordle_bot(gb.guess_bot):
         for c in info:
             ans = ans*3 + int(c)
         return ans
-
-
-words = np.loadtxt("official_wordle_all.txt", dtype=str)
-remaining = np.loadtxt("official_wordle_common.txt", dtype=str)
-bot = wordle_bot(words, remaining, 5)
-print(bot.test_bot(10))
